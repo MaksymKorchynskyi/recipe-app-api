@@ -2,24 +2,26 @@
 Test for the user API.
 """
 from django.test import TestCase
-from django.contrib.auth import reverse
-from django.urls import reverse 
+from django.contrib.auth import get_user_model
+from django.urls import reverse
 
 from rest_framework.test import APIClient
 from rest_framework.test import status
 
 CREATE_USER_URL = reverse('user:create')
 
+
 def create_user(**params):
     """Create and return a new user"""
     return get_user_model().objects.create_user(**params)
+
 
 class PublicUserApiTest(TestCase):
     """Test the public features of the user API."""
 
     def setUp(self):
         self.client = APIClient()
-    
+
     def test_create_user_success(self):
         payload = {
             'email': 'test@example.com',
@@ -31,7 +33,7 @@ class PublicUserApiTest(TestCase):
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
         user = get_user_model().objects.get(email=payload['email'])
         self.assertTrue(user.check_password(payload['password']))
-        self.assertNotIn('password',res.data)
+        self.assertNotIn('password', res.data)
 
     def test_user_with_email_exists_error(self):
         """Test error returned if user with email exists."""
@@ -51,7 +53,7 @@ class PublicUserApiTest(TestCase):
             'email': 'test@example.com',
             'password': 'pw',
             'name': 'Test Name',
-        }     
+        }
         res = self.client.post(CREATE_USER_URL, payload)
 
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
@@ -59,6 +61,3 @@ class PublicUserApiTest(TestCase):
             email=payload['email']
         ).exists()
         self.assertFalse(user_exists)
-
-
-
